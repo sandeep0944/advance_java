@@ -1,0 +1,68 @@
+The Java Collection Framework provides a set of interfaces and classes to store and manipulate groups of objects efficiently. It includes various data structures such as List, Set, Queue, and Map. 
+
+List (Ordered, allows duplicates) → Implementations: ArrayList, LinkedList, Vector:
+import java.util.ArrayList;
+import java.util.List;
+
+public class ListExample {
+    public static void main(String[] args) {
+        
+        List<String> myList = new ArrayList<>();
+
+        
+        myList.add("Java");
+        myList.add("Python");
+        myList.add("C++");
+        myList.add("Java"); // Duplicate allowed
+
+        
+        System.out.println("List Elements: " + myList);
+
+        
+        System.out.println("Element at index 1: " + myList.get(1));
+
+        
+        myList.remove("C++");
+
+        // Iterating through List
+        System.out.println("Updated List:");
+        for (String lang : myList) {
+            System.out.println(lang);
+        }
+    }
+}
+
+
+
+Set (Unique elements, unordered) → Implementations: HashSet, LinkedHashSet, TreeSet:
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class SetExample {
+    public static void main(String[] args) {
+        
+        Set<String> mySet = new HashSet<>();
+
+        
+        mySet.add("Apple");
+        mySet.add("Banana");
+        mySet.add("Cherry");
+        mySet.add("Apple"); // Duplicate, will not be added
+
+        
+        System.out.println("Set Elements: " + mySet);
+
+        
+        System.out.println("Contains 'Banana': " + mySet.contains("Banana"));
+
+        
+        mySet.remove("Cherry");
+
+       
+        System.out.println("Updated Set:");
+        for (String fruit : mySet) {
+            System.out.println(fruit);
+        }
+    }
+}
