@@ -1,0 +1,232 @@
+Create a hibernate Code and upload in github with CRUD operations:
+Hibernate Configuration:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/your_database</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">your_password</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <mapping class="com.example.model.Employee"/>
+    </session-factory>
+</hibernate-configuration>
+
+
+Employee Entity Class:
+package com.example.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "employees")
+public class Employee {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "salary")
+    private double salary;
+
+    // Constructors
+    public Employee() {}
+
+    public Employee(String name, String email, double salary) {
+        this.name = name;
+        this.email = email;
+        this.salary = salary;
+    }
+
+    // Getters and Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public double getSalary() { return salary; }
+    public void setSalary(double salary) { this.salary = salary; }
+
+    @Override
+    public String toString() {
+        return "Employee [id=" + id + ", name=" + name + ", email=" + email + ", salary=" + salary + "]";
+    }
+}
+
+
+package com.example.util;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+public class HibernateUtil {
+    private static final SessionFactory sessionFactory = buildSessionFactory();
+
+    private static SessionFactory buildSessionFactory() {
+        try {
+            return new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
+        } catch (Throwable ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public static void shutdown() {
+        getSessionFactory().close();
+    }
+}
+
+
+
+package com.example.dao;
+
+import com.example.model.Employee;
+import com.example.util.HibernateUtil;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import java.util.List;
+
+public class EmployeeDAO {
+
+  
+    public void saveEmployee(Employee employee) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.persist(employee);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        }
+    }
+
+    public Employee getEmployee(int id) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.get(Employee.class, id);
+        }
+    }
+
+
+    public void updateEmployee(Employee employee) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.merge(employee);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        }
+    }
+
+ 
+    public void deleteEmployee(int id) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            Employee employee = session.get(Employee.class, id);
+            if (employee != null) {
+                session.remove(employee);
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        }
+    }
+
+
+    public List<Employee> getAllEmployees() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Employee", Employee.class).list();
+        }
+    }
+}
+
+
+package com.example.main;
+
+import com.example.dao.EmployeeDAO;
+import com.example.model.Employee;
+
+import java.util.List;
+
+public class MainApp {
+    public static void main(String[] args) {
+        EmployeeDAO employeeDAO = new EmployeeDAO();
+
+   
+        Employee emp1 = new Employee("Alice Brown", "alice@example.com", 60000);
+        Employee emp2 = new Employee("John Doe", "john@example.com", 75000);
+        employeeDAO.saveEmployee(emp1);
+        employeeDAO.saveEmployee(emp2);
+
+
+        Employee retrievedEmp = employeeDAO.getEmployee(emp1.getId());
+        System.out.println("Retrieved Employee: " + retrievedEmp);
+
+ 
+        retrievedEmp.setSalary(65000);
+        employeeDAO.updateEmployee(retrievedEmp);
+        System.out.println("Updated Employee: " + employeeDAO.getEmployee(emp1.getId()));
+
+
+        List<Employee> employees = employeeDAO.getAllEmployees();
+        System.out.println("All Employees: " + employees);
+
+     
+        employeeDAO.deleteEmployee(emp2.getId());
+        System.out.println("Employee Deleted");
+
+        // Get All Employees After Deletion
+        employees = employeeDAO.getAllEmployees();
+        System.out.println("Remaining Employees: " + employees);
+    }
+}
+
+
+//Dependencies
+<dependencies>
+    <dependency>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>6.3.1.Final</version>
+    </dependency>
+
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>8.0.33</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>3.1.0</version>
+    </dependency>
+</dependencies>
+
+
